@@ -1,0 +1,10 @@
+# Issue template chooser configuration for Churn Guard.
+# Blank issues are disabled so every report lands in a structured form.
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Churn Guard Wiki
+    url: https://github.com/PJH720/churn-guard/wiki
+    about: Read project background, the 4-notebook pipeline, data conventions, and milestone schedule before opening an issue.
+  - name: 💬 Questions & Discussion (새싹반 friendly!)
+    url: https://github.com/PJH720/churn-guard/discussions
+    about: Not sure if it is a bug, a data quirk, or just a question? Start a discussion here first — no question is too small.

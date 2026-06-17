@@ -1,0 +1,83 @@
+name: 🧹 Data Quality Issue
+description: Something looks wrong in the data — bad values, encoding, leakage, schema drift, or a broken cleaning step.
+title: "[Data]: "
+labels: ["type: data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Data problems quietly poison every model downstream, so thank you for catching this! 🔍
+        Please reference the **real Telco columns** (e.g. `TotalCharges`, `MonthlyCharges`, `Churn`, `Contract`, `tenure`, `InternetService`, `PaymentMethod`) rather than the placeholder names in the Korean proposal.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Type of data issue
+      options:
+        - "TotalCharges parsing (object/string, 11 blank rows at tenure==0)"
+        - "Target encoding (Churn / Churn_Flag mapping)"
+        - "Data leakage (a feature secretly encodes the target)"
+        - "Schema drift (column added/removed/renamed vs. raw 21-col CSV)"
+        - "Derived feature wrong (Tenure_Group, Risk_Factor_Count)"
+        - "Missing / null values after cleaning"
+        - "Value distribution looks off (churn rate, category counts)"
+        - "Other (describe below)"
+    validations:
+      required: true
+
+  - type: input
+    id: columns
+    attributes:
+      label: Affected column(s)
+      description: Use exact dataset column names.
+      placeholder: "TotalCharges, MonthlyCharges, Churn_Flag"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: Which file?
+      options:
+        - "WA_Fn-UseC_-Telco-Customer-Churn.csv (raw, 21 cols)"
+        - "telco_churn_cleaned.csv (generated, 24 cols)"
+        - "In-notebook df_clean (before export)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What is wrong?
+      description: Describe the problem and how you noticed it.
+      placeholder: "TotalCharges has 11 NaN values after cleaning, but convention says they should be filled with 0 (these are tenure==0 brand-new customers)."
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Paste the value counts, `.info()`, `.isnull().sum()`, or sanity-check output that shows the problem. Rendered as code.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior (per data conventions)
+      description: |
+        Reminder of load-bearing conventions: work on `df_clean = df.copy()`; `Churn_Flag = df_clean["Churn"].map({"Yes":1,"No":0})`;
+        `TotalCharges` cleaned via `pd.to_numeric(errors="coerce").fillna(0)` (do NOT drop the 11 rows); cleaned data has 0 missing values and churn rate ≈ 26.54%.
+      placeholder: "After cleaning, df_clean['TotalCharges'].isnull().sum() should be 0."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Sanity checks
+      options:
+        - label: I referenced real Telco columns (not the proposal's placeholder names like product_type/price/Quantity).
+        - label: I checked whether this is expected behavior documented in CLAUDE.md before filing.

@@ -1,0 +1,96 @@
+name: 🤖 Modeling Experiment
+description: Propose or track a model experiment (training, comparison, tuning).
+title: "[Model]: "
+labels: ["type: modeling", "phase: 3-modeling"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Let's experiment! 🧪 This feeds the **Modeling** notebook (#3).
+        Sequence reminder: **Logistic Regression** (interpretable baseline — read the coefficients) → **Random Forest / LightGBM** (performance).
+        ⚠️ **Do NOT rank models by Accuracy.** With a 26.54% churn base rate, a model that predicts "no churn" for everyone scores ~73% accuracy while catching zero churners. Optimize **Recall first**, then F1, then ROC-AUC.
+
+  - type: dropdown
+    id: model
+    attributes:
+      label: Model
+      options:
+        - Logistic Regression
+        - Random Forest
+        - LightGBM
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+      description: What do you expect this model / change to do, and why?
+      placeholder: "Class-weighted Logistic Regression will lift Recall above the unweighted baseline by penalizing missed churners."
+    validations:
+      required: true
+
+  - type: textarea
+    id: preprocessing
+    attributes:
+      label: Preprocessing plan
+      description: How will features be prepared?
+      placeholder: |
+        - One-hot encode categoricals (pd.get_dummies)
+        - Scale continuous features (MonthlyCharges, TotalCharges, tenure)
+        - Train/test split with stratify=Churn_Flag
+    validations:
+      required: true
+
+  - type: dropdown
+    id: optimize_metric
+    attributes:
+      label: Metric to optimize
+      description: |
+        STRONG default: Recall (catch churners) → then F1 → then ROC-AUC.
+        Accuracy is listed last and discouraged — the 26.54% imbalance makes it misleading. Only override the default with a clear justification in the notes.
+      options:
+        - Recall (default — minimize missed churners / Type II error)
+        - F1 (balance precision & recall)
+        - ROC-AUC (ranking quality)
+        - Accuracy (DISCOURAGED — misleading on 26.54% imbalance)
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: hyperparams
+    attributes:
+      label: Key hyperparameters (optional)
+      description: Any specific settings you plan to try.
+      placeholder: "class_weight='balanced', n_estimators=300, max_depth=8"
+    validations:
+      required: false
+
+  - type: textarea
+    id: results
+    attributes:
+      label: Results (fill in after running)
+      description: Record the metrics once the experiment runs. Rendered as code.
+      render: text
+      placeholder: |
+        Recall: 0.78
+        F1: 0.61
+        ROC-AUC: 0.84
+        (Accuracy reported for reference only: 0.75)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: rigor
+    attributes:
+      label: Evaluation rigor (required for this project)
+      description: These guard against the imbalance trap. Please commit to both.
+      options:
+        - label: I will include a Confusion Matrix.
+          required: true
+        - label: I will explicitly report Type II error (churners predicted as staying — false negatives).
+          required: true
+        - label: I did NOT rank this model by Accuracy as the primary metric.
+          required: true

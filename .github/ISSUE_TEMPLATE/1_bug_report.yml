@@ -1,0 +1,91 @@
+name: 🐛 Bug Report (Notebook / Code)
+description: A cell errors out, a notebook will not run top-to-bottom, or an output is clearly wrong.
+title: "[Bug]: "
+labels: ["type: bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for flagging this! 🙏 A clear bug report helps us fix things fast.
+        Before filing, the single most common cause is the **hardcoded Kaggle path** — see the environment field below.
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where did this happen?
+      description: |
+        Reminder: the EDA notebook hardcodes a Kaggle path
+        `/kaggle/input/datasets/blastchar/telco-customer-churn/WA_Fn-UseC_-Telco-Customer-Churn.csv`.
+        That path does NOT exist locally — the file is at the repo root. If your error is "file not found", you probably need to point `file_path` at the local CSV first.
+      options:
+        - Local (Jupyter / VS Code on my machine)
+        - Kaggle notebook environment
+        - Google Colab
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: input
+    id: notebook_and_cell
+    attributes:
+      label: Notebook & cell
+      description: Which notebook and which cell? Include the cell number or a short snippet of the cell's first line.
+      placeholder: "customer-churn-1-eda.ipynb — cell that builds Risk_Factor_Count"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you run, in what order?
+      placeholder: |
+        1. Opened customer-churn-1-eda.ipynb
+        2. Ran all cells from the top
+        3. Failed at the cell that reads the CSV
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What did you expect to happen?
+      placeholder: "Final cell prints 'Final shape: (7043, 24)' and writes telco_churn_cleaned.csv"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: What actually happened?
+      placeholder: "FileNotFoundError raised when reading the dataset."
+    validations:
+      required: true
+
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Traceback / error output
+      description: Paste the full traceback or wrong output. This will be rendered as a code block.
+      render: python
+    validations:
+      required: false
+
+  - type: input
+    id: versions
+    attributes:
+      label: Package versions (optional)
+      description: Output of `pandas.__version__`, `numpy.__version__`, Python version.
+      placeholder: "pandas 2.2.2, numpy 1.26.4, Python 3.11"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I confirmed `file_path` points at the local CSV (not the Kaggle path) when running locally.
+        - label: I searched existing issues and this is not a duplicate.

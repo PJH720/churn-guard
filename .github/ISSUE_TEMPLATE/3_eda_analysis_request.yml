@@ -1,0 +1,73 @@
+name: 📊 EDA / Analysis Request
+description: Request a new EDA cut, segmentation, or churn-driver question to investigate.
+title: "[EDA]: "
+labels: ["type: eda", "phase: 2-insights"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Great analysis questions drive the whole project. 🚀 This feeds the **Insights** notebook (#2) — customer segmentation and high-risk-group identification.
+        Tip: the reusable helper `churn_summary(column)` returns per-category `Customer_Count` + `Churn_Rate_%` sorted descending — reuse it instead of rewriting groupbys.
+
+  - type: dropdown
+    id: dimension
+    attributes:
+      label: Primary dimension to analyze
+      description: Which feature should we slice churn by?
+      options:
+        - Contract (Month-to-month / One year / Two year)
+        - tenure / Tenure_Group
+        - MonthlyCharges
+        - InternetService (Fiber optic / DSL / No)
+        - PaymentMethod (Electronic check, etc.)
+        - Services (OnlineSecurity, TechSupport, StreamingTV, etc.)
+        - Risk_Factor_Count (0–5 composite score)
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+      description: What do you want to learn? Phrase it as a churn / retention question.
+      placeholder: "Among Month-to-month Fiber-optic customers, does adding TechSupport meaningfully lower the churn rate?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis (optional)
+      description: What do you expect to find, and why?
+      placeholder: "Customers with no add-on services churn more, so bundling TechSupport should correlate with retention."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: segment_or_cross
+    attributes:
+      label: Single dimension or cross-tab?
+      options:
+        - Single dimension (one churn_summary call)
+        - Cross-tab / interaction between two dimensions
+        - Segmentation (cluster customers into groups)
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverable
+    attributes:
+      label: Expected output / deliverable
+      description: What artifact should this produce?
+      placeholder: "A churn-rate bar chart + a short markdown insight cell naming the highest-risk segment."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I will reuse churn_summary() where it fits instead of re-writing the groupby.
+        - label: This analysis reads telco_churn_cleaned.csv (not the raw CSV).

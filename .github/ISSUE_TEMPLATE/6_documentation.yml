@@ -1,0 +1,61 @@
+name: 📝 Documentation
+description: Improve the README, Wiki, CLAUDE.md, notebook markdown, or any project docs.
+title: "[Docs]: "
+labels: ["type: docs"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good docs make this project reproducible for the whole 새싹반 class. 📚 Thanks for improving them!
+
+  - type: dropdown
+    id: doc_target
+    attributes:
+      label: Which doc?
+      options:
+        - README
+        - Wiki
+        - CLAUDE.md
+        - Notebook markdown cells / narrative
+        - Ref/ planning docs (Korean proposal & milestones)
+        - Code comments / docstrings
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: change_type
+    attributes:
+      label: Type of change
+      options:
+        - Fix something incorrect or outdated
+        - Add missing information
+        - Clarify confusing wording
+        - Add an example or walkthrough
+    validations:
+      required: true
+
+  - type: textarea
+    id: whats_wrong
+    attributes:
+      label: What needs improving?
+      description: Describe the current state and the problem with it.
+      placeholder: "The README doesn't mention that file_path must be changed from the Kaggle path to run locally."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed update
+      description: What should it say instead? A draft is welcome.
+      placeholder: "Add a 'Running locally' section noting the file_path change and the expected final shape (7043, 24)."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked this is not already documented elsewhere (e.g. CLAUDE.md or the Wiki).

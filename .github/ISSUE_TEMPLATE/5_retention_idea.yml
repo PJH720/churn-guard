@@ -1,0 +1,82 @@
+name: 💡 Retention Idea
+description: Propose a retention action tied to a specific churn risk factor.
+title: "[Retention]: "
+labels: ["type: retention", "phase: 4-recommendations"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the real deliverable! 🎯 The project's goal is business-facing retention strategy, not just a model.
+        A strong idea links a **risk factor** (backed by EDA / model interpretation) → a **target segment** → a **concrete action** → an **expected impact**.
+
+  - type: dropdown
+    id: risk_factor
+    attributes:
+      label: Churn risk factor this addresses
+      description: Which driver does this target? (Backed by EDA findings.)
+      options:
+        - Month-to-month contract (42.7% churn)
+        - "Short tenure / new customers (0–12mo: 47.4% churn)"
+        - High MonthlyCharges (churners avg ~74.4 vs ~61.3)
+        - Fiber optic internet (41.9% churn)
+        - Electronic check payment (45.3% churn)
+        - No OnlineSecurity (41.8% churn) / No TechSupport (41.6% churn)
+        - High Risk_Factor_Count (score 5 → 71.9% churn)
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: input
+    id: target_segment
+    attributes:
+      label: Target segment
+      description: Who exactly should this action reach?
+      placeholder: "Month-to-month Fiber-optic customers in their first 12 months paying by electronic check."
+    validations:
+      required: true
+
+  - type: textarea
+    id: action
+    attributes:
+      label: Proposed retention action
+      description: What concrete intervention do you propose?
+      placeholder: "Offer a discounted 1-year contract upgrade + free TechSupport for the first 3 months to new high-charge Fiber customers."
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why should this work? (evidence)
+      description: Tie it back to EDA or model findings.
+      placeholder: "Two-year contracts churn at only 2.8% vs 42.7% for month-to-month, and customers with TechSupport churn far less (15.2% vs 41.6%)."
+    validations:
+      required: false
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected business impact
+      description: Estimate the upside. How many customers, how much churn reduction, what is the cost vs. benefit?
+      placeholder: "Targets ~1,000 high-risk customers; even a 5pt churn reduction retains ~50 customers/month. Retention discount cost < average customer lifetime value."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Rough effort / feasibility
+      options:
+        - Low (messaging / offer tweak)
+        - Medium (process or pricing change)
+        - High (product / contract structure change)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: This action is tied to a data-backed risk factor (not a guess).
+        - label: I named a specific target segment, not "all customers".
