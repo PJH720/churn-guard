@@ -1,0 +1,17 @@
+# CODEOWNERS — default review assignment for Churn Guard.
+# Syntax: <path pattern>  <owner(s)>. Last matching pattern wins.
+# Docs: https://docs.github.com/articles/about-code-owners
+
+# Default owner for everything in the repo
+*                       @PJH720
+
+# Notebooks & data pipeline
+*.ipynb                 @PJH720
+WA_Fn-UseC_-Telco-Customer-Churn.csv  @PJH720
+
+# Project & contributor docs
+/docs/                  @PJH720
+/wiki/                  @PJH720
+/.github/               @PJH720
+README.md               @PJH720
+AGENTS.md               @PJH720
