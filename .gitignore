@@ -4,6 +4,7 @@
 # --- Claude Code / oh-my-claudecode tooling state (not project files) ---
 .omc/
 .remember/
+.serena/
 
 # --- Local reference / planning docs (kept out of the public repo) ---
 Ref/
