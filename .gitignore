@@ -1,29 +1,71 @@
-# --- macOS ---
+# --- Operating System ---
 .DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
 
-# --- Claude Code / oh-my-claudecode tooling state (not project files) ---
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- AI Tools & Agent States ---
 .omc/
 .remember/
 .serena/
-
-# --- Local reference / planning docs (kept out of the public repo) ---
-Ref/
-CLAUDE.md
-AGENTS.md
-
-# --- Generated artifacts (reproducible from the EDA notebook) ---
-telco_churn_cleaned.csv
+.gemini/
+.claude/
 
 # --- Python ---
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual Environments ---
 .venv/
 venv/
 env/
+ENV/
 .python-version
 
-# --- Jupyter ---
-.ipynb_checkpoints/
+# --- Testing & Coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+.hypothesis/
 
-# Note: the raw dataset (WA_Fn-UseC_-Telco-Customer-Churn.csv) is intentionally
-# tracked — it is the project's source data, not a generated file.
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# --- Local Reference / Planning Docs ---
+Ref/
+CLAUDE.md
+AGENTS.md
+
+# --- Data & Logs ---
+*.log
+telco_churn_cleaned.csv
+**/telco_churn_cleaned.csv
+
