@@ -18,6 +18,7 @@ Thumbs.db
 .serena/
 .gemini/
 .claude/
+.agents/
 
 # --- Python ---
 __pycache__/
