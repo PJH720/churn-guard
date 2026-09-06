@@ -13,6 +13,43 @@ Churn Guard is a **binary-classification** project on the **Kaggle IBM Telco Cus
 
 The emphasis is **traditional/classical ML** and **explainability over raw accuracy** — the Demo Day audience is industry judges, and the point is an *actionable retention strategy*, not a leaderboard score.
 
+## Final results (Demo Day · 2026-07-10)
+
+The project is complete. Headline finding: **the Zip Code column — normally dropped for high cardinality (1,652 unique values) — becomes the strongest business lever once it is joined to public income data.**
+
+| Step | What was done | Result |
+|---|---|---|
+| **1. Enrich** | Joined US Census Bureau ACS 2024 (S1901) household income onto the Telco data by ZCTA | **99.94%** join rate (1,651 / 1,652 zip codes; 1 missing imputed with the median) |
+| **2. Engineer** | Built `Income_Charge_Ratio` = monthly charge ÷ area median household income — the customer's *felt* telecom cost burden | New continuous feature, no dimensionality blow-up |
+| **3. Test** | Independent two-sample t-test on churned vs retained customers | Churned **1.08%** vs retained **0.87%** · **p = 4.76e-31**, t = **11.72** |
+| **4. Segment** | K-Means clustering + SHAP attribution across income segment × contract type | **Low-income + month-to-month churns at 46.75%** — ~2× the 26.5% base rate |
+| **5. Act** | Costed a retention promotion against defended revenue | **≈ $30K net profit defended per year** |
+
+**The retention action, costed out**
+
+- Target: bottom-income customers in the top 25% of cost burden — **405 customers**
+- Offer: 20% discount for 3 months → marketing cost **405 × $64.6 × 20% × 3 = $15,697**
+- Conservative assumption: of the 121 expected churners, only **50% (60 customers)** are retained for a year → **60 × $64.6 × 12 = $46,512** revenue defended
+- **Net: $46,512 − $15,697 ≈ $30K/year**
+- Moving those customers to a 2-year contract drops churn from **46.75% → 7.89%** (**−38.86%p**)
+
+Final model: LightGBM, **ROC-AUC 0.8356** — tuned toward recall, because a missed churner costs more than a wasted discount.
+
+*Caveat: the $30K figure rests on an assumed 50% retention rate. Measuring the real rate with an A/B test is the natural next step.*
+
+## Notebooks
+
+Run in this order — each consumes the previous one's output.
+
+| # | Notebook | Role |
+|---|---|---|
+| 1 | `examples/customer-churn-1-eda.ipynb` | EDA, cleaning, feature engineering |
+| 2 | `notebooks/census_income_join.ipynb` | ACS income join by ZCTA → `data/telco_churn_with_income.csv` |
+| 3 | `notebooks/income_segmentation_churn_analysis.ipynb` | `Income_Charge_Ratio` design + t-test |
+| 4 | `notebooks/ensemble_segmentation_churn_analysis.ipynb` | K-Means segmentation, churn rate by segment × contract |
+| 5 | `notebooks/customer_retention_strategy.ipynb` · `notebooks/(logic only) shap_retention_strategy.ipynb` | SHAP interpretation → retention actions → `data/retention_action_plan.csv` |
+| — | `examples/ai_sogang_project_final.ipynb` | Demo Day presentation notebook (end-to-end) |
+
 ## Schedule
 
 | Date | Event |
@@ -23,14 +60,14 @@ The emphasis is **traditional/classical ML** and **explainability over raw accur
 
 ## Pipeline (4-notebook design)
 
-The project is four sequential notebooks; each consumes the previous one's cleaned output. **Only #1 is built so far.**
+The original 4-notebook plan below is kept for context; the notebooks actually delivered are listed in **Notebooks** above.
 
 | # | Notebook | Role | Status |
 |---|---|---|---|
 | 1 | `customer-churn-1-eda.ipynb` | EDA + cleaning + feature engineering → emits `telco_churn_cleaned.csv` | ✅ Built |
-| 2 | Insights | Customer segmentation, high-risk group identification | ⬜ Planned |
-| 3 | Modeling | Logistic Regression baseline → Random Forest / LightGBM | ⬜ Planned |
-| 4 | Recommendations | Interpretation → 3 risk factors + 3 retention actions | ⬜ Planned |
+| 2 | Insights | Customer segmentation, high-risk group identification | ✅ Built |
+| 3 | Modeling | Logistic Regression baseline → Random Forest / LightGBM | ✅ Built |
+| 4 | Recommendations | Interpretation → 3 risk factors + 3 retention actions | ✅ Built |
 
 ## Quickstart
 
