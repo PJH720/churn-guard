@@ -70,3 +70,17 @@ AGENTS.md
 telco_churn_cleaned.csv
 **/telco_churn_cleaned.csv
 
+
+# --- Working Dumps & One-off Utilities (not project deliverables) ---
+draft_dump.txt
+draft_full.txt
+ensemble_full.txt
+income_dump.txt
+income_full.txt
+notebooks/plot_lines.txt
+notebooks/parse_nb.py
+notebooks/parse_strings.py
+append_comparison.py
+
+# --- Finder duplicate (identical to Telco_Customer_Churm2025_003) ---
+examples/AI_Sogang_mini_001 2.ipynb
