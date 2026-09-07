@@ -1,119 +1,125 @@
 # 🛡️ Churn Guard — Customer Churn Prediction & Retention Strategy
 
-> Predict which Telco customers are about to leave, explain **why**, and turn that into **3 concrete retention actions**.
-> 새싹반(Sprout) 2-week ML mini-project · classical ML · explainability-first.
+[English](./README.md) | [한국어](./README.ko.md)
 
-**Links:** [Milestones](https://github.com/PJH720/churn-guard/milestones) · [Project Board](docs/PROJECT_BOARD.md) · [Roadmap](wiki/Roadmap.md) · [Architecture](wiki/Architecture.md) · [Issues](https://github.com/PJH720/churn-guard/issues)
+> **The Zip Code column is usually thrown away. We joined it to public income data and turned it into ≈ $30K of defended profit per year.**
+> AI@Sogang Sprout Cohort 2 · Demo Day 2026-07-10 · judged by industry practitioners
+
+**Links:** [Notebooks](#notebooks) · [Project Board](docs/PROJECT_BOARD.md) · [Roadmap](wiki/Roadmap.md) · [Architecture](wiki/Architecture.md) · [Milestones](https://github.com/PJH720/churn-guard/milestones)
 
 ---
 
-## What this is
+## The problem with dropping Zip Code
 
-Churn Guard is a **binary-classification** project on the **Kaggle IBM Telco Customer Churn** dataset (7,043 customers × 21 columns, target `Churn`, base churn rate **26.54%**). The real deliverable is business-facing: not just a model, but **3 data-driven churn risk factors + 3 retention actions** backed by model interpretation (Feature Importance / SHAP).
+Churn Guard is a binary-classification project on the **IBM Telco Customer Churn** dataset (7,043 customers × 21 columns, base churn rate **26.54%**). Every tutorial on this dataset drops `Zip Code`: 1,652 unique values, one-hot encode it and your feature space explodes.
 
-The emphasis is **traditional/classical ML** and **explainability over raw accuracy** — the Demo Day audience is industry judges, and the point is an *actionable retention strategy*, not a leaderboard score.
+But a zip code is not noise. It is a proxy for **where the customer lives and what they can afford**. So instead of encoding it, we used it as a **join key** to public income data — and the resulting feature turned out to explain churn better than the raw bill amount does.
 
-## Final results (Demo Day · 2026-07-10)
+The deliverable was never a leaderboard score. It was **three risk factors and three retention actions a manager can approve on Monday**, with the cost and the defended revenue attached.
 
-The project is complete. Headline finding: **the Zip Code column — normally dropped for high cardinality (1,652 unique values) — becomes the strongest business lever once it is joined to public income data.**
+## Final results
 
 | Step | What was done | Result |
 |---|---|---|
-| **1. Enrich** | Joined US Census Bureau ACS 2024 (S1901) household income onto the Telco data by ZCTA | **99.94%** join rate (1,651 / 1,652 zip codes; 1 missing imputed with the median) |
-| **2. Engineer** | Built `Income_Charge_Ratio` = monthly charge ÷ area median household income — the customer's *felt* telecom cost burden | New continuous feature, no dimensionality blow-up |
-| **3. Test** | Independent two-sample t-test on churned vs retained customers | Churned **1.08%** vs retained **0.87%** · **p = 4.76e-31**, t = **11.72** |
-| **4. Segment** | K-Means clustering + SHAP attribution across income segment × contract type | **Low-income + month-to-month churns at 46.75%** — ~2× the 26.5% base rate |
-| **5. Act** | Costed a retention promotion against defended revenue | **≈ $30K net profit defended per year** |
+| **1. Enrich** | Joined US Census Bureau ACS 2024 (S1901) median household income onto the Telco data by ZCTA | **99.94%** join rate (1,651 / 1,652 zip codes; the 1 miss imputed with the median) |
+| **2. Engineer** | Built `Income_Charge_Ratio` = monthly charge ÷ area median household income — the customer's *felt* cost burden | A continuous feature, so no dimensionality blow-up |
+| **3. Test** | Independent two-sample t-test, churned vs retained | Churned **1.08%** vs retained **0.87%** · **p = 4.76e-31**, t = **11.72** |
+| **4. Segment** | K-Means clustering + SHAP attribution over income segment × contract type | **Low-income + month-to-month churns at 46.75%** — ~2× the 26.5% base rate |
+| **5. Act** | Costed a retention promotion against the revenue it defends | **≈ $30K net profit defended per year** |
 
-**The retention action, costed out**
+Final model: **LightGBM, ROC-AUC 0.8356**, tuned toward recall — a missed churner costs more than a wasted discount.
 
-- Target: bottom-income customers in the top 25% of cost burden — **405 customers**
-- Offer: 20% discount for 3 months → marketing cost **405 × $64.6 × 20% × 3 = $15,697**
-- Conservative assumption: of the 121 expected churners, only **50% (60 customers)** are retained for a year → **60 × $64.6 × 12 = $46,512** revenue defended
-- **Net: $46,512 − $15,697 ≈ $30K/year**
-- Moving those customers to a 2-year contract drops churn from **46.75% → 7.89%** (**−38.86%p**)
+## What the data showed
 
-Final model: LightGBM, **ROC-AUC 0.8356** — tuned toward recall, because a missed churner costs more than a wasted discount.
+**Income alone explains almost nothing.** Churn barely moves across income segments — 27.5% / 26.6% / 26.7% / 26.3%. If you stop here, zip code looks useless.
 
-*Caveat: the $30K figure rests on an assumed 50% retention rate. Measuring the real rate with an A/B test is the natural next step.*
+![Churn rate by income segment](docs/figures/churn_rate_by_income_segment.png)
+
+**Income crossed with contract type explains a great deal.** The same customers, split by how they are locked in, span **44.4% down to 1.9%**. Low income plus month-to-month is the danger zone; the contract is the lever.
+
+![Churn rate heatmap by income segment and contract type](docs/figures/churn_rate_by_income_x_contract.png)
+
+**The full segment picture** — churn by income band, by contract, by K-Means cluster, and the cost-burden distribution of churned vs retained customers.
+
+![Segment analysis dashboard](docs/figures/segment_dashboard.png)
+
+**Where the split actually happens** — a decision tree over the income and cost features, used to sanity-check the clusters against something a human can read.
+
+![Decision tree segmentation](docs/figures/decision_tree_segmentation.png)
+
+## The retention action, costed out
+
+- **Target:** low-income customers in the top 25% of cost burden — **405 customers**
+- **Offer:** 20% discount for 3 months → marketing cost **405 × $64.6 × 20% × 3 = $15,697**
+- **Conservative assumption:** of the 121 expected churners, only **50% (60 customers)** stay for a year → **60 × $64.6 × 12 = $46,512** defended
+- **Net:** $46,512 − $15,697 ≈ **$30K per year**
+- **Bonus:** moving those customers onto a 2-year contract drops churn from **46.75% → 7.89%** (**−38.86%p**)
+
+The individual-customer view, showing a risk score and the matching offer:
+
+![Customer churn predictor](docs/score.png)
 
 ## Notebooks
 
-Run in this order — each consumes the previous one's output.
+Run in order — each consumes the previous one's output.
 
 | # | Notebook | Role |
 |---|---|---|
 | 1 | `examples/customer-churn-1-eda.ipynb` | EDA, cleaning, feature engineering |
 | 2 | `notebooks/census_income_join.ipynb` | ACS income join by ZCTA → `data/telco_churn_with_income.csv` |
 | 3 | `notebooks/income_segmentation_churn_analysis.ipynb` | `Income_Charge_Ratio` design + t-test |
-| 4 | `notebooks/ensemble_segmentation_churn_analysis.ipynb` | K-Means segmentation, churn rate by segment × contract |
-| 5 | `notebooks/customer_retention_strategy.ipynb` · `notebooks/(logic only) shap_retention_strategy.ipynb` | SHAP interpretation → retention actions → `data/retention_action_plan.csv` |
-| — | `examples/ai_sogang_project_final.ipynb` | Demo Day presentation notebook (end-to-end) |
-
-## Schedule
-
-| Date | Event |
-|---|---|
-| **6/23 – 7/8** | Project work period |
-| **6/26 (Fri)** | Midterm @Day — share problem definition, EDA insights & LR baseline; collect feedback |
-| **7/10 (Fri)** | **Demo Day** — final presentation + awards (industry judges) |
-
-## Pipeline (4-notebook design)
-
-The original 4-notebook plan below is kept for context; the notebooks actually delivered are listed in **Notebooks** above.
-
-| # | Notebook | Role | Status |
-|---|---|---|---|
-| 1 | `customer-churn-1-eda.ipynb` | EDA + cleaning + feature engineering → emits `telco_churn_cleaned.csv` | ✅ Built |
-| 2 | Insights | Customer segmentation, high-risk group identification | ✅ Built |
-| 3 | Modeling | Logistic Regression baseline → Random Forest / LightGBM | ✅ Built |
-| 4 | Recommendations | Interpretation → 3 risk factors + 3 retention actions | ✅ Built |
+| 4 | `notebooks/ensemble_segmentation_churn_analysis.ipynb` | K-Means segmentation, churn by segment × contract |
+| 5 | `notebooks/customer_retention_strategy.ipynb`<br>`notebooks/(logic only) shap_retention_strategy.ipynb` | SHAP interpretation → retention actions → `data/retention_action_plan.csv` |
+| — | `examples/ai_sogang_project_final.ipynb` | Demo Day notebook (end-to-end) |
 
 ## Quickstart
-
-> ⚠️ **Gotcha:** the EDA notebook hardcodes a Kaggle path (`/kaggle/input/...`). To run locally, point `file_path` at the repo-root CSV `WA_Fn-UseC_-Telco-Customer-Churn.csv` (tracked in [#3](https://github.com/PJH720/churn-guard/issues/3)).
 
 ```bash
 git clone https://github.com/PJH720/churn-guard.git
 cd churn-guard
-pip install pandas numpy matplotlib      # no requirements.txt yet — see issue #2
-jupyter notebook customer-churn-1-eda.ipynb
+uv sync                      # or: pip install pandas numpy matplotlib seaborn lightgbm ipykernel
+jupyter notebook notebooks/census_income_join.ipynb
 ```
 
-Running notebook 1 top-to-bottom prints `Final shape: (7043, 24)` and writes **`telco_churn_cleaned.csv`** — the handoff artifact every downstream notebook reads (not the raw CSV).
+Raw data ships with the repo (`data/2025/`, `data/ACSST5Y2024.S1901_*/`), so the notebooks run without any external download.
 
 ## Data conventions (load-bearing)
 
-Downstream notebooks must respect these, set in the EDA notebook:
+Downstream notebooks depend on these, set in the EDA notebook:
 
 - **Working copy:** all cleaning happens on `df_clean = df.copy()`, never the raw `df`.
 - **Target:** `Churn_Flag = df_clean["Churn"].map({"Yes":1,"No":0})` — use `Churn_Flag` for math, keep `Churn` for labels.
-- **`TotalCharges` is dirty:** loads as `object` (11 blanks, all `tenure==0` new customers) → `pd.to_numeric(..., errors="coerce").fillna(0)`. **Do not drop these rows.**
-- **Derived columns:** `Tenure_Group` (`pd.cut` bins `[-1,12,24,48,72]`), `Risk_Factor_Count` (0–5 composite).
+- **`TotalCharges` is dirty:** loads as `object` (11 blanks, all `tenure == 0` new customers) → `pd.to_numeric(..., errors="coerce").fillna(0)`. **Do not drop these rows.**
+- **Derived columns:** `Tenure_Group` (`pd.cut` bins `[-1,12,24,48,72]`), `Risk_Factor_Count` (0–5 composite), `Income_Charge_Ratio`.
 - **Helper:** `churn_summary(column)` → per-category `Customer_Count` + `Churn_Rate_%`, sorted descending. Reuse it.
-
-## Modeling direction
-
-- **Optimize Recall first**, then F1 and ROC-AUC. **Do not rank by Accuracy** — the 26.5% base rate makes it misleading (a missed churner costs more than retention spend).
-- Sequence: **Logistic Regression** (interpretable baseline — read coefficients) → **Random Forest / LightGBM** (performance). Always show a **Confusion Matrix** and minimize Type-II error (predicting a churner as staying).
+- **Evaluation:** optimize **recall first**, then F1 and ROC-AUC. **Never rank by accuracy** — at a 26.5% base rate it is misleading.
 
 ## Repository layout
 
 | Path | Role |
 |---|---|
-| `customer-churn-1-eda.ipynb` | The only notebook built — EDA + cleaning + feature engineering |
-| `WA_Fn-UseC_-Telco-Customer-Churn.csv` | Raw dataset (repo root) |
-| `telco_churn_cleaned.csv` | **Generated** by notebook 1 — the downstream handoff (24 cols). Not yet on disk |
-| `docs/PROJECT_BOARD.md` | Flat snapshot of all milestones + issues |
-| `docs/milestones/` | Per-phase execution docs (goal, scope, Definition of Done) |
-| `wiki/Roadmap.md`, `wiki/Architecture.md` | Timeline & technical-architecture docs |
-| `CLAUDE.md`, `AGENTS.md` | Guidance for AI coding agents |
-| `.github/` | Issue forms, PR template, label taxonomy |
+| `notebooks/` | The analysis pipeline (income join → segmentation → retention strategy) |
+| `examples/` | EDA notebook, Demo Day notebook, and reference notebooks |
+| `data/2025/` | IBM Telco source data (xlsx) |
+| `data/ACSST5Y2024.S1901_*/` | US Census Bureau ACS 2024 household-income source data |
+| `data/telco_churn_with_income.csv` | Join output — the handoff artifact downstream notebooks read |
+| `data/retention_action_plan.csv` | Final per-customer retention targeting output |
+| `docs/figures/` | Analysis figures used in this README and the Demo Day deck |
+| `docs/PROJECT_BOARD.md`, `docs/milestones/` | Milestone and issue tracking |
+| `wiki/Roadmap.md`, `wiki/Architecture.md` | Timeline and technical architecture |
 
-## Project tracking
+## Limitations & next steps
 
-Work is organized into **3 milestones** mirroring the class phases — see the [Project Board](docs/PROJECT_BOARD.md) and [Roadmap](wiki/Roadmap.md):
+- **The $30K rests on an assumed 50% retention rate.** It is a deliberately conservative planning number, not a measurement. Running an A/B test on the 405 targeted customers would replace the assumption with a real rate.
+- **The income join is at ZCTA granularity**, so every customer in a zip code inherits the same median income. That understates within-zip variation; household-level income would sharpen the burden ratio.
+- **Correlation, not causation.** The t-test shows churned customers carry a heavier cost burden; it does not prove that lowering the bill causes them to stay. Only the experiment above can.
 
-1. [Phase 1: Data Understanding & Baseline](https://github.com/PJH720/churn-guard/milestone/1) (due 6/25)
-2. [Phase 2: Advanced Modeling & Evaluation](https://github.com/PJH720/churn-guard/milestone/2) (due 7/5)
-3. [Phase 3: Interpretation & Retention Strategy](https://github.com/PJH720/churn-guard/milestone/3) (due 7/8 · Demo Day 7/10)
+## Project context
+
+| Date | Event |
+|---|---|
+| 6/23 – 7/8 | Project work period |
+| 6/26 | Midterm — problem definition, EDA insights, LR baseline |
+| **7/10** | **Demo Day** — final presentation, judged by industry practitioners |
+
+Work was organized into three milestones mirroring the class phases — see the [Project Board](docs/PROJECT_BOARD.md) and [Roadmap](wiki/Roadmap.md).
