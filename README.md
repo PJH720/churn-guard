@@ -55,10 +55,6 @@ Final model: **LightGBM, ROC-AUC 0.8356**, tuned toward recall — a missed chur
 - **Net:** $46,512 − $15,697 ≈ **$30K per year**
 - **Bonus:** moving those customers onto a 2-year contract drops churn from **46.75% → 7.89%** (**−38.86%p**)
 
-The individual-customer view, showing a risk score and the matching offer:
-
-![Customer churn predictor](docs/score.png)
-
 ## Notebooks
 
 Run in order — each consumes the previous one's output.
