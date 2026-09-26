@@ -1,23 +1,31 @@
 # Contributing to Churn Guard
 
-Thanks for your interest! Churn Guard is a 새싹반(Sprout) 2-week ML mini-project — small, notebook-driven, and built by a class team. These guidelines keep the work consistent and reviewable.
+Thanks for your interest! Churn Guard is a 새싹반 (AI@Sogang 2기, team 2) ML mini-project. It was presented at Demo Day on 7/10, and the repo is now kept as an open-source record. Small, notebook-driven contributions are welcome. These guidelines keep the work consistent and reviewable.
 
 ## Local setup
 
 ```bash
 git clone https://github.com/PJH720/churn-guard.git
 cd churn-guard
-pip install pandas numpy matplotlib      # no requirements.txt yet (see issue #2)
-jupyter notebook customer-churn-1-eda.ipynb
+uv sync
+uv pip install scikit-learn shap imbalanced-learn openpyxl   # not yet in pyproject.toml (see issue #2)
 ```
 
-> ⚠️ The EDA notebook hardcodes a Kaggle `file_path`. To run locally, point it at the repo-root CSV `WA_Fn-UseC_-Telco-Customer-Churn.csv` (issue [#3](https://github.com/PJH720/churn-guard/issues/3)).
+The data is in the repo:
 
-Running notebook 1 top-to-bottom should print `Final shape: (7043, 24)` and write `telco_churn_cleaned.csv` — the handoff artifact for downstream notebooks.
+- `data/2025/` — IBM Telco 2025 extension (7,043 × 33), the main dataset
+- `data/ACSST5Y2024.S1901_*/` — US Census ACS 2024 household income
+- `data/telco_churn_with_income.csv` — the income-joined table used by `notebooks/`
+
+> ⚠️ Some notebooks in `examples/` were written in Google Colab and still use Colab paths. To run them locally, point the paths at the files under `data/` (issue [#3](https://github.com/PJH720/churn-guard/issues/3)).
 
 ## Before you change code
 
-Read **[AGENTS.md](AGENTS.md)** and **[wiki/Architecture.md](wiki/Architecture.md)** first. The data conventions there are load-bearing: `df_clean`, `Churn_Flag`, `TotalCharges` coercion (don't drop the 11 `tenure==0` rows), `Tenure_Group`, `Risk_Factor_Count`, and the `churn_summary()` helper. Downstream notebooks read `telco_churn_cleaned.csv`, not the raw CSV.
+Read the [README data conventions](README.md#data-conventions) and [wiki/Architecture.md](wiki/Architecture.md) first. These rules are load-bearing:
+
+- Target is `Churn Value`. Drop `Churn Label`, `Churn Score`, and `Churn Reason` (leakage).
+- `Total Charges` has 11 blanks, all at tenure 0. Fill them with 0; don't drop the rows.
+- `City`, `Zip Code`, `Latitude`, and `Longitude` are join keys and EDA inputs, not model features.
 
 ## Branch strategy
 
@@ -36,9 +44,9 @@ Use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:
 ## Pull requests
 
 1. Open a PR against `main` using the [PR template](.github/PULL_REQUEST_TEMPLATE.md).
-2. Link the issue it closes (`Closes #NN`) and attach it to the right **milestone** (Phase 1/2/3).
+2. Link the issue it closes (`Closes #NN`).
 3. Apply existing labels — reuse the taxonomy (`phase: *`, `type: *`, `priority: *`); don't invent new ones.
-4. Make sure notebook 1 still runs clean if you touched data prep.
+4. If you change a number that the README reports, update the README table and say which notebook cell it came from.
 
 ## Issues
 
@@ -46,8 +54,13 @@ Open issues through the [structured forms](.github/ISSUE_TEMPLATE/): Bug, Data Q
 
 ## Modeling conventions
 
-Optimize **Recall first**, then F1 and ROC-AUC — never rank models by Accuracy (26.5% churn base rate). Always show a Confusion Matrix and minimize Type-II error. See [docs/adr/0001-recall-first-evaluation.md](docs/adr/0001-recall-first-evaluation.md).
+Optimize **recall first** with a precision ≥ 0.45 floor, then check F1 and ROC-AUC. Never rank models by accuracy (26.5% churn base rate). Always show a confusion matrix. See [docs/adr/0001-recall-first-evaluation.md](docs/adr/0001-recall-first-evaluation.md).
+
+The Demo Day judges added two cautions, which new work should follow:
+
+- Report AUC and F1 alongside recall rather than optimizing recall alone.
+- Prefer class weighting (`class_weight`, `scale_pos_weight`) over SMOTE, which creates unrealistic values in encoded categorical columns.
 
 ## Data note
 
-The dataset (`WA_Fn-UseC_-Telco-Customer-Churn.csv`) is IBM/Kaggle's "Telco Customer Churn" — *Data files © Original Authors*. The project's MIT license covers our **code, analysis, and docs**, not the dataset. Do not relicense or redistribute the data outside Kaggle's terms.
+The IBM Telco Customer Churn data (2025 extension and the 2020 Kaggle version) is *© its original authors*. The income data comes from the US Census Bureau (ACS 2024, table S1901). The project's MIT license covers our **code, analysis, and docs**, not the datasets. Follow each source's terms before redistributing the data.

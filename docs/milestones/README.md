@@ -4,6 +4,8 @@ Execution docs for the three Churn Guard phases. Each phase has a GitHub milesto
 
 **Schedule:** work 6/23–7/8 · Midterm @Day 6/26 · **Demo Day 7/10**.
 
+**Status:** completed at Demo Day (7/10). Each phase doc marks its Definition of Done as ✅ done, ⚠️ done differently, or ⬜ no record.
+
 | Phase | Doc | GitHub | Due | Outcome |
 |---|---|---|---|---|
 | 1 — Data Understanding & Baseline | [phase-1.md](phase-1.md) | [milestone/1](https://github.com/PJH720/churn-guard/milestone/1) | 6/25 | EDA insights + interpretable LR baseline |

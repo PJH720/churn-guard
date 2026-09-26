@@ -1,15 +1,28 @@
 # Churn Guard — Project Board (Milestones & Issues)
 
-> GitHub-ready tracking plan for the 새싹반 2-week mini-project **"Churn Guard: Customer Churn Prediction & Retention Strategy"**.
-> Mirrors the live milestones/issues on [`PJH720/churn-guard`](https://github.com/PJH720/churn-guard). Created from `Ref/Making Milestones input.md`, grounded in the real Telco dataset + EDA-notebook conventions.
+> Tracking plan for the 새싹반 (AI@Sogang 2기, team 2) mini-project **"Churn Guard: Customer Churn Prediction & Retention Strategy"**.
+> Mirrors the milestones/issues on [`PJH720/churn-guard`](https://github.com/PJH720/churn-guard). The plan was written in June on the 2020 Kaggle dataset; the status below records how each item ended up at **Demo Day (7/10)**.
 
-**Schedule** — work period **6/23 → 7/8**, Midterm @Day **6/26**, **Demo Day 7/10** (industry judges).
+**Legend:** ✅ done (evidence named) · ⚠️ done differently · ⬜ no record / not done. In the summary table, the row status is the overall outcome; individual items below can still be ⚠️.
 
-| Milestone | Due | Focus |
-|---|---|---|
-| Phase 1: Data Understanding & Baseline | 2026-06-25 | EDA · preprocessing · Logistic Regression baseline |
-| Phase 2: Advanced Modeling & Evaluation | 2026-07-05 | Random Forest / LightGBM · tuning · Recall/F1/ROC-AUC |
-| Phase 3: Interpretation & Retention Strategy | 2026-07-08 | Feature Importance/SHAP · 3 risk factors + 3 retention actions · Demo Day prep |
+**Schedule (plan)** — work period 6/23 → 7/8, Midterm @Day 6/26, **Demo Day 7/10**.
+**Schedule (actual)** — team formed 6/22, topic vote 6/26, kickoff 6/28, midpoint meeting 7/1, final merge 7/8, **Demo Day 7/10**.
+
+## Final status (after Demo Day 7/10)
+
+| Board # | GitHub | Issue | Status | What happened · evidence |
+|---|---|---|---|---|
+| #1 | [#11](https://github.com/PJH720/churn-guard/issues/11) | Data Setup & EDA | ⚠️ | Switched to the IBM Telco 2025 extension (7,043 × 33, `data/2025/`); EDA done per member |
+| #2 | [#12](https://github.com/PJH720/churn-guard/issues/12) | Preprocessing & Feature Engineering | ✅ | Leakage columns dropped, scaling, stratified split; income features from the Census join (`notebooks/census_income_join.ipynb`) |
+| #3 | [#13](https://github.com/PJH720/churn-guard/issues/13) | Logistic Regression Baseline | ✅ | `examples/Telco_Customer_Churm2025_002 (1).ipynb` — recall 0.8717 at threshold 0.4 |
+| #4 | [#14](https://github.com/PJH720/churn-guard/issues/14) | Midterm Feedback & Feature Refinement | ⚠️ | 6/26 was a topic vote, not a baseline review; imbalance handled with class weights (SMOTE tried and dropped) |
+| #5 | [#15](https://github.com/PJH720/churn-guard/issues/15) | RF & LightGBM Training + Tuning | ⚠️ | RF and LightGBM trained; only LightGBM was tuned (`GridSearchCV` in `examples/ai_sogang_project_final.ipynb` and `notebooks/ensemble_segmentation_churn_analysis.ipynb`) |
+| #6 | [#16](https://github.com/PJH720/churn-guard/issues/16) | Comprehensive Model Evaluation | ✅ | Confusion matrix, classification report, ROC-AUC; RF recall 0.893 at threshold 0.35 (`examples/Telco_Customer_Churm2025_003 AI_Sogang_mini.ipynb`) |
+| #7 | [#17](https://github.com/PJH720/churn-guard/issues/17) | Feature Importance & Churn Drivers | ✅ | SHAP top 3: month-to-month contract, no dependents, short tenure |
+| #8 | [#18](https://github.com/PJH720/churn-guard/issues/18) | Risk Groups & Retention Strategies | ✅ | 3 actions with a cost estimate (~$30K presented / ~$27K reproduced); `data/retention_action_plan.csv` |
+| #9 | [#19](https://github.com/PJH720/churn-guard/issues/19) | Final PPT, Code & Rehearsal | ⚠️ | 43-slide deck presented on 7/10 (not in the repo); no rehearsal record |
+
+Final numbers are in the [README](../README.md#results).
 
 **Label map** (reuses the repo's existing taxonomy — no new labels):
 
@@ -29,79 +42,71 @@
 
 ## 🚩 Milestone: Phase 1 — Data Understanding & Baseline
 **Due:** 2026-06-25
-Load the Kaggle Telco set, run EDA on churn drivers (contract, payment, charges, tenure), complete preprocessing, and establish an interpretable Logistic Regression baseline. Feeds the Midterm @Day (6/26).
+Load the Telco set, run EDA on churn drivers (contract, payment, charges, tenure), complete preprocessing, and establish an interpretable Logistic Regression baseline.
 
 ### Issue #1 — `[Phase 1] Data Setup and EDA`
-Load the Telco Churn dataset and analyze churn vs. retained customer patterns.
-- [ ] Load the raw CSV from the repo root (`WA_Fn-UseC_-Telco-Customer-Churn.csv`); **fix the notebook's hardcoded Kaggle `file_path`** so it runs locally.
-- [ ] Confirm shape `(7043, 21)`, target `Churn` (Yes/No), base churn rate ≈ **26.54%**; create `df_clean` and `Churn_Flag = df_clean["Churn"].map({"Yes":1,"No":0})`.
-- [ ] Use the existing `churn_summary(column)` helper for churn-rate breakdowns by `Contract`, `PaymentMethod`, `InternetService`, `Tenure_Group`.
-- [ ] Visualize churn vs `MonthlyCharges`, `Contract`, `PaymentMethod`, `tenure`; confirm ordering **Month-to-month > One year > Two year**.
-- [ ] Document key EDA insights for the Midterm deck.
+- ⚠️ Load the raw CSV and fix the hardcoded Kaggle `file_path` → the team moved to the 2025 xlsx in `data/2025/`; some `examples/` notebooks still use Colab paths.
+- ⚠️ Confirm shape `(7043, 21)` and target `Churn` → 2025 set is 7,043 × 33 with target `Churn Value`; churn rate **26.54%** confirmed.
+- ⚠️ Use the `churn_summary()` helper → churn-rate breakdowns were done in each member's notebook without the shared helper.
+- ✅ Contract ordering **Month-to-month > One year > Two year** confirmed (income × contract heatmap, `docs/figures/churn_rate_by_income_x_contract.png`).
+- ⚠️ Document EDA insights for the Midterm deck → used in the Demo Day deck instead.
 
 ### Issue #2 — `[Phase 1] Data Preprocessing & Feature Engineering`
-Prepare the raw dataset for ML: clean dirty columns, encode, scale, split.
-- [ ] Clean `TotalCharges` (loads as `object`; 11 blanks all at `tenure==0`): `pd.to_numeric(..., errors="coerce").fillna(0)` — **do not drop these rows**.
-- [ ] One-hot encode categoricals with `pd.get_dummies()` (`Contract`, `PaymentMethod`, `InternetService`, `OnlineSecurity`, `TechSupport`, …).
-- [ ] Scale continuous features (`tenure`, `MonthlyCharges`, `TotalCharges`) with StandardScaler/MinMaxScaler.
-- [ ] Stratified train/test split on `Churn_Flag` (preserves the 26.5% imbalance); confirm the `telco_churn_cleaned.csv` (7043×24) handoff is the downstream input.
+- ✅ `Total Charges` blanks (11, all at tenure 0) filled with 0, not dropped.
+- ✅ Categorical encoding and `StandardScaler` for continuous features.
+- ✅ Stratified train/test split on the churn target.
+- ⚠️ `telco_churn_cleaned.csv` (7043×24) handoff → replaced by `data/telco_churn_with_income.csv` after the switch to the 2025 set.
 
 ### Issue #3 — `[Phase 1] Baseline Modeling using Logistic Regression`
-Train an interpretable baseline and set the performance benchmark.
-- [ ] Train Logistic Regression on the preprocessed train set; use `class_weight="balanced"` for the imbalance.
-- [ ] Predict on test; generate a Confusion Matrix.
-- [ ] Evaluate on **Recall, F1, ROC-AUC** (not Accuracy — the 26.5% base rate makes it misleading).
-- [ ] Read the model coefficients to see which features raise churn probability.
+- ✅ Logistic Regression with `class_weight="balanced"` (`examples/Telco_Customer_Churm2025_002 (1).ipynb`).
+- ✅ Confusion matrix on the test set.
+- ✅ Recall, F1, ROC-AUC reported; threshold tuned (recall 0.8717 at 0.4).
+- ✅ Coefficients read for interpretation.
 
 ---
 
 ## 🚩 Milestone: Phase 2 — Advanced Modeling & Evaluation
 **Due:** 2026-07-05
-Integrate Midterm feedback; train & tune Random Forest and LightGBM; compare all three models on Recall / F1 / ROC-AUC (not Accuracy); select the final model by business priority (minimize missed churners).
+Train & tune Random Forest and LightGBM; compare all three models on Recall / F1 / ROC-AUC; select the final model by business priority (minimize missed churners).
 
 ### Issue #4 — `[Phase 2] Midterm Feedback & Feature Refinement`
-Fold in Midterm @Day feedback and prepare features for tree models.
-- [ ] Document feedback from the Midterm @Day (6/26).
-- [ ] Address class imbalance explicitly (`class_weight` / SMOTE) and refine features (e.g. binning, `Risk_Factor_Count`).
-- [ ] Re-verify the finalized train/test split and cleaned-data handoff are ready for tree models.
+- ⚠️ Document Midterm @Day (6/26) feedback → 6/26 was topic proposals, mentor feedback, and a vote.
+- ✅ Class imbalance addressed with `class_weight` / `scale_pos_weight`. SMOTE was tried and dropped (recall fell to 0.66).
+- ✅ Features refined: `Risk_Factor_Count`, `Tenure_Group`, income features (`Income_Charge_Ratio`), `City_Charge_Ratio`.
+- ⬜ One shared train/test split for all models → each member used their own split.
 
 ### Issue #5 — `[Phase 2] Model Training & Hyperparameter Tuning (RF & LightGBM)`
-Train and tune ensemble tree models to beat the baseline.
-- [ ] Train a Random Forest classifier (tree-model baseline).
-- [ ] Train a LightGBM classifier and compare.
-- [ ] Tune both with Grid/Randomized Search + cross-validation.
-- [ ] Document optimal params, training time, and CV results.
+- ✅ Random Forest trained.
+- ✅ LightGBM trained and compared.
+- ⚠️ Grid/Randomized Search + CV → `GridSearchCV` for LightGBM only; no RF tuning found.
+- ⬜ Optimal params, training time, and CV results documented in one place.
 
 ### Issue #6 — `[Phase 2] Comprehensive Model Evaluation (Confusion Matrix, F1, ROC-AUC)`
-Evaluate LR, RF, LightGBM head-to-head and pick the final model.
-- [ ] Confusion matrix per model; analyze Type-I vs **Type-II error (missed churners — the costly one)**.
-- [ ] Classification report comparing Precision/Recall/F1 across all three models.
-- [ ] ROC curve + AUC for all models.
-- [ ] Select the final model by business priority (maximize Recall on the churn class).
+- ✅ Confusion matrix per model.
+- ✅ Classification report across LR / RF / LightGBM.
+- ⚠️ ROC curve + AUC for all models → AUC reported for all; ROC curves plotted only in notebook 002.
+- ✅ Final model selected by recall with a precision ≥ 0.45 floor: RF recall 0.893 at threshold 0.35.
 
 ---
 
 ## 🚩 Milestone: Phase 3 — Interpretation & Retention Strategy
 **Due:** 2026-07-08 · **Demo Day 7/10**
-Interpret the best model (Feature Importance / SHAP), derive the Top-3 churn risk factors, formulate 3 data-backed retention actions, and finalize code + deck for Demo Day.
+Interpret the best model, derive the Top-3 churn risk factors, formulate 3 data-backed retention actions, and finalize code + deck for Demo Day.
 
 ### Issue #7 — `[Phase 3] Extract Feature Importance & Identify Churn Drivers`
-Explain *why* customers churn using the best tree model.
-- [ ] Extract Feature Importance (or SHAP values) from the final tree model.
-- [ ] Visualize the top churn-driving features.
-- [ ] Relate top features (`Contract`, `MonthlyCharges`, `tenure`, `InternetService=Fiber optic`) to churn probability.
-- [ ] Document the **Top 3 Churn Risk Factors** clearly.
+- ✅ Feature importance and SHAP extracted from the tree models.
+- ✅ Top churn-driving features visualized.
+- ✅ Top features related to churn probability.
+- ✅ **Top 3 risk factors:** month-to-month contract, no dependents, short tenure.
 
 ### Issue #8 — `[Phase 3] Define Risk Groups & Propose Retention Strategies`
-Translate model insight into 3 actionable retention plays.
-- [ ] Define the high-risk customer profile from the data.
-- [ ] Propose **3 retention actions** (AARRR/Retention lens), e.g.: Month-to-month → 1-yr-contract incentive (first-month discount); no `TechSupport` → 1-month free trial; high `MonthlyCharges` (Fiber optic) → targeted bundled-discount alert.
-- [ ] Tie each strategy directly to a model-interpretation finding.
-- [ ] Sanity-check each action is logical and practically applicable.
+- ✅ High-risk profile: low income × month-to-month (44.41% churn reproduced; 46.75% presented).
+- ⚠️ The 3 actions differ from the examples planned here. Delivered: (1) price relief for the top 25% charge burden in the low-income group, (2) contract conversion with 15% off and no early-termination fee, (3) a security / device-protection add-on bundle.
+- ✅ Each action tied to a finding (charge-burden t-test, income × contract, add-on count vs. churn).
+- ✅ Action 1 costed: ~$30K a year presented, ~$27K recomputed from the reproduced churn rate (assumes 50% retention).
 
 ### Issue #9 — `[Phase 3] Finalize PPT, Code, and Rehearsal`
-Polish the repo and prepare for Demo Day.
-- [ ] Clean and comment the notebooks; tidy the repo.
-- [ ] Build the deck in the 5-part flow: Background → EDA → Modeling/Evaluation → Feature Importance → Action Items.
-- [ ] Review against the proposal checklist (logical flow, data validation, clear actions).
-- [ ] Team rehearsal for **Demo Day 7/10** (industry judges).
+- ⚠️ Notebooks collected into `notebooks/` and `examples/`; some still use Colab paths.
+- ✅ Deck built (43 slides) and presented on 7/10.
+- ⬜ Review against the proposal checklist — no record.
+- ⬜ Team rehearsal — no record.

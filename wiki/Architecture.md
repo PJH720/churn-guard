@@ -1,49 +1,50 @@
 # Architecture
 
-Technical architecture for **Churn Guard**. The system is a **4-notebook pipeline** where each stage consumes the previous stage's cleaned output. Only notebook 1 is built today.
+Technical architecture for **Churn Guard** as delivered at Demo Day (7/10).
+
+The original plan was a 4-notebook pipeline built on the 2020 Kaggle dataset. In practice, the team switched to the IBM Telco **2025** extension and each member worked in a separate notebook. The only shared lineage is the income-join chain below. Member notebooks in `examples/` are independent and do not feed each other.
 
 ## Data flow
 
 ```mermaid
 flowchart LR
-    raw[("WA_Fn-UseC_-Telco-Customer-Churn.csv<br/>7043 × 21")] --> nb1
-    nb1["Notebook 1 — EDA<br/>clean + feature engineer"] --> cleaned[("telco_churn_cleaned.csv<br/>7043 × 24")]
-    cleaned --> nb2["Notebook 2 — Insights<br/>segmentation"]
-    cleaned --> nb3["Notebook 3 — Modeling<br/>LR → RF / LightGBM"]
-    nb3 --> nb4["Notebook 4 — Recommendations<br/>Feature Importance → actions"]
-    nb4 --> out["3 risk factors<br/>+ 3 retention actions"]
+    telco[("data/Telco-Customer-Churn2025.csv<br/>IBM Telco 2025 · 7043 × 33")] --> join
+    acs[("data/ACSST5Y2024.S1901_*/<br/>Census ACS 2024 income")] --> join
+    join["notebooks/census_income_join<br/>Zip Code → ZCTA join"] --> inc[("data/telco_churn_with_income.csv")]
+    inc --> seg["notebooks/income_segmentation_churn_analysis<br/>Income_Charge_Ratio · t-test · K-Means"]
+    inc --> ens["notebooks/ensemble_segmentation_churn_analysis<br/>combined model + member comparison"]
+    inc --> ret["notebooks/customer_retention_strategy<br/>churn probability → action"]
+    ret -. "saved; no export cell" .-> plan[("data/retention_action_plan.csv<br/>6,475 customers")]
+    telco --> ex["examples/ member notebooks<br/>LR · RF · LightGBM · SHAP"]
 ```
 
-## The handoff contract
-`telco_churn_cleaned.csv` (7043×24) is the single source of truth for notebooks 2–4. **Read it, not the raw CSV.** It is produced by notebook 1's final cell and is the boundary between "data prep" and "modeling".
+## Data sources
+| Source | Path | Notes |
+|---|---|---|
+| IBM Telco Customer Churn 2025 | `data/Telco-Customer-Churn2025.csv` (IBM xlsx files are in `data/2025/`) | 7,043 customers × 33 columns, churn rate 26.54% |
+| US Census ACS 2024 5-year, S1901 | `data/ACSST5Y2024.S1901_*/` | Household income by ZCTA |
+| Income-joined table | `data/telco_churn_with_income.csv` | 1,651 of 1,652 zip codes matched (99.94%); 568 customers (8.1%) have no income value |
+| Kaggle Telco 2020 (reference only) | `data/WA_Fn-UseC_-Telco-Customer-Churn2020.csv` | 7,043 × 21; used only in early reference notebooks |
 
-> ⚠️ Notebook 1 hardcodes a Kaggle `file_path`. Locally, point it at the repo-root raw CSV.
-
-## Dataset schema (raw)
-7,043 customers × 21 columns. Target `Churn` (Yes/No), base rate 26.54%.
-- **Demographic:** `gender`, `SeniorCitizen`, `Partner`, `Dependents`
-- **Account:** `tenure`, `Contract`, `PaperlessBilling`, `PaymentMethod`, `MonthlyCharges`, `TotalCharges`
-- **Services:** `PhoneService`, `MultipleLines`, `InternetService`, `OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`
-- **Key / target:** `customerID`, `Churn`
-
-## Load-bearing conventions
+## Load-bearing conventions (2025 dataset)
 | Convention | Rule |
 |---|---|
-| Working copy | `df_clean = df.copy()` — never mutate raw `df` |
-| Target | `Churn_Flag = df_clean["Churn"].map({"Yes":1,"No":0})` |
-| `TotalCharges` | `object` w/ 11 blanks (all `tenure==0`) → `pd.to_numeric(errors="coerce").fillna(0)`; **don't drop** |
-| `Tenure_Group` | `pd.cut` bins `[-1,12,24,48,72]` |
-| `Risk_Factor_Count` | 0–5 composite risk score |
-| `churn_summary(col)` | per-category `Customer_Count` + `Churn_Rate_%`, sorted desc |
+| Target | `Churn Value` (1 = churned) |
+| Leakage | Drop `Churn Label`, `Churn Score`, `Churn Reason` — they are only known after churn |
+| `Total Charges` | 11 blanks, all at tenure 0 → fill with 0; **don't drop** |
+| Geography | `City`, `Zip Code`, `Latitude`, `Longitude` are join keys and EDA inputs, not model features |
+| Income features | `Area_Median_Income`, `Income_Charge_Ratio`, `Area_Income_Level` (from the ACS join) |
+| City feature | `City_Charge_Ratio` (city-size segmentation) |
 
-## Modeling architecture
-- **Baseline:** Logistic Regression — read coefficients for interpretation.
-- **Performance:** Random Forest / LightGBM — ensemble accuracy + feature importance.
-- **Evaluation:** Recall-first → F1 → ROC-AUC; Confusion Matrix mandatory; minimize Type-II error (missed churners). Accuracy is **not** a selection metric (26.5% imbalance).
-- **Interpretation:** Feature Importance / SHAP → Top-3 risk factors → retention actions (AARRR / Retention lens).
+## Modeling
+- **Models:** Logistic Regression baseline, Random Forest, LightGBM.
+- **Imbalance:** class weighting (`class_weight`, `scale_pos_weight`). SMOTE was tried and dropped because recall fell to 0.66.
+- **Evaluation:** recall first with a precision ≥ 0.45 floor, plus F1 and ROC-AUC. Thresholds were tuned. Accuracy is not a selection metric (26.5% base rate). See [ADR 0001](../docs/adr/0001-recall-first-evaluation.md).
+- **Interpretation:** SHAP and feature importance → top 3 risk factors (month-to-month contract, no dependents, short tenure) → 3 retention actions.
+- **Known gap:** member notebooks use different preprocessing and test splits, so their numbers are not a strict comparison.
 
 ## Tech stack
-Python · Jupyter · pandas · numpy · matplotlib (no seaborn). No build/lint/test tooling — work is notebook-driven. `requirements.txt` pending ([#2](https://github.com/PJH720/churn-guard/issues/2)).
+Python 3.12 · Jupyter · pandas · numpy · matplotlib · seaborn · scikit-learn · LightGBM · SHAP, managed with `uv`. `pyproject.toml` lists only part of this, so the [Quickstart](../README.md#quickstart) installs the rest. There is no build, lint, or test tooling; the work is notebook-driven.
 
 ## Repo layout
-See [README](../README.md#repository-layout) and [CLAUDE.md](../CLAUDE.md) for the authoritative file map and conventions.
+See the [README](../README.md#repository-layout) for the file map.
